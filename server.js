@@ -15,7 +15,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: '*' }));
 app.use('/uploads', express.static('uploads'));
 
 mongoose.connect(process.env.MONGO_URI, {
@@ -102,9 +102,9 @@ app.post('/login', async (req, res, next) => {
     const { email, password } = req.body;
     try {
         const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ error: 'User not found' });
+        if (!user) return res.status(400).json({ error: 'User not found' }); // Invalid email
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
+        if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' }); // Password is incorrect
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
         res.json({ token, user });
     } catch (error) {
