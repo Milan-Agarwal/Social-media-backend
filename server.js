@@ -19,8 +19,7 @@ app.use(cors({ origin: '*' }));
 app.use('/uploads', express.static('uploads'));
 
 mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
+    
 }).then(() => console.log("MongoDB Connected"))
   .catch(err => console.log(err));
 
@@ -261,9 +260,21 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: "Internal Server Error" });
 });
 
+// Handle unhandled promise rejections
+process.on("unhandledRejection", (reason, promise) => {
+    console.error("Unhandled Rejection at:", promise, "reason:", reason);
+    shutdown("Unhandled Promise Rejection");
+});
+
+// Handle uncaught exceptions
+process.on("uncaughtException", (err) => {
+    console.error("Uncaught Exception thrown:", err);
+    shutdown("Uncaught Exception");
+});
+
 // Graceful Shutdown
-const shutdown = async () => {
-    console.log("Shutting down server...");
+const shutdown = async (reason) => {
+    console.log(`Shutting down server due to: ${reason}`);
     try {
         await mongoose.connection.close();
         console.log("MongoDB connection closed.");
@@ -277,8 +288,8 @@ const shutdown = async () => {
     }
 };
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+process.on("SIGINT", () => shutdown("SIGINT signal received"));
+process.on("SIGTERM", () => shutdown("SIGTERM signal received"));
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
