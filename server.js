@@ -131,7 +131,7 @@ app.post('/posts', async (req, res, next) => {
 
 app.get('/posts', async (req, res, next) => {
     try {
-        const posts = await Post.find().populate('userId', 'username'); // Populate user details
+        const posts = await Post.find().populate('userId', 'username profilePicture'); // Populate user details
         res.json(posts);
     } catch (error) {
         next(error);
